@@ -6,8 +6,8 @@ from PyQt6.QtWidgets import (
     QLabel, 
     QToolBar,
 )
-from modules.rec_module import record_and_recognize_audio
-from modules.assistant_module import setup_voice_assistant, assistant_say
+from modules.record_and_recognize import record_and_recognize_audio
+from modules.assistant import VoiseAssistant
 import pathlib
 import sys
 
@@ -40,8 +40,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(label)
 
     def ClickOnToolbarButtonSayText(self):
-        setup_voice_assistant()
-        assistant_say("text to say")
+        assistant = VoiseAssistant('Tyler', 'ru')
+        VoiseAssistant.assistant_say(assistant, "text to say")
         
 
 if __name__ == "__main__":

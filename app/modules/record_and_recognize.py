@@ -31,3 +31,17 @@ def record_and_recognize_audio():
     
     os.remove("microphone-results.wav")
     return(recognized_data)
+
+def split_phrase(voice: str):
+    voice = voice.split(" ")
+    commands_list = []
+    command_options_list = []
+    command = ''
+
+    for i in range(len(voice)):
+        command = command + voice[i] + ' '
+        command_options = [str(input_part) for input_part in voice[i+1:len(voice)]]
+        commands_list.append(command)
+        command_options_list.append(command_options)
+        
+    return commands_list, command_options_list

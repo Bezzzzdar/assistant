@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QToolBar,
 )
 from modules.record_and_recognize import record_and_recognize_audio
-from modules.assistant import VoiseAssistant
+from modules.assistant import VoiceAssistant
 import pathlib
 import sys
 
@@ -40,8 +40,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(label)
 
     def ClickOnToolbarButtonSayText(self):
-        assistant = VoiseAssistant('Tyler', 'ru')
-        VoiseAssistant.assistant_say(assistant, "text to say")
+        assistant = VoiceAssistant('Tyler', 'ru')
+        VoiceAssistant.assistant_say(assistant, "text to say")
         
 
 if __name__ == "__main__":

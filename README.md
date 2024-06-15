@@ -4,6 +4,9 @@
 * SpeechRecognition
 * PyQt6
 * googlesearch-python
+* Wikipedia-API
+* geocoder 
+* geopy
   
 # How to install:
 * `pip install dependence_name`

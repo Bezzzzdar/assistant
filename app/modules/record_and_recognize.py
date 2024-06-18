@@ -27,7 +27,8 @@ def record_and_recognize_audio():
             recognized_data = recognizer.recognize_google(audio, language="ru").lower()
 
         except speech_recognition.UnknownValueError:
-            recognized_data = recognizer.recognize_google(audio, language="en").lover()
+            pass
+            # recognized_data = recognizer.recognize_google(audio, language="en").lover()
     
     os.remove("microphone-results.wav")
     return(recognized_data)

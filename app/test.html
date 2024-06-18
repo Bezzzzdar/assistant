@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend to Backend</title>
+</head>
+<body>
+    <h1>Send Data to Flask Backend</h1>
+    <button id="sendDataButton">Send Data</button>
+
+    <script>
+        document.getElementById('sendDataButton').addEventListener('click', () => {
+            const data = { owner: "new_owner" };
+            
+            fetch('http://localhost:5000/api/data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

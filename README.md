@@ -6,6 +6,7 @@
 * googlesearch-python
 * geocoder 
 * geopy
+* Flask
   
 # How to install:
 * `pip install dependence_name`

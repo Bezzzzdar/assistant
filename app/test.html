@@ -7,11 +7,34 @@
 </head>
 <body>
     <h1>Send Data to Flask Backend</h1>
-    <button id="sendDataButton">Send Data</button>
+    <button id="sendOwnerName">Send new owner name</button>
 
     <script>
-        document.getElementById('sendDataButton').addEventListener('click', () => {
-            const data = { owner: "new_owner" };
+        document.getElementById('sendOwnerName').addEventListener('click', () => {
+            const data = { owner_name: "Alice" }; // insert here new name for owner
+            
+            fetch('http://localhost:5000/api/data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+
+    <button id="sendOwnerLanguage">Send new owner language</button>
+
+    <script>
+        document.getElementById('sendOwnerLanguage').addEventListener('click', () => {
+            const data = { owner_language: "en" }; // insert here new language for owner
             
             fetch('http://localhost:5000/api/data', {
                 method: 'POST',

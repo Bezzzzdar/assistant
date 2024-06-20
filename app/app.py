@@ -1,25 +1,36 @@
 import threading
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from modules.assistant import VoiceAssistant
 from modules.owner import Owner
 from modules.record_and_recognize import record_and_recognize_audio, split_phrase
 
 app = Flask(__name__)
+CORS(app)
 
 assistant = VoiceAssistant('Tyler', 'ru')
 owner = Owner("Ivan", 'ru')
 
 @app.route('/api/data', methods=['POST'])
 def receive_data():
-    data = request.json
+    data = request.get_json()
+    try:
+        if 'owner_name' in data:
+            owner.change_owner_name(data['owner_name'])
+        elif 'owner_language' in data:
+            owner.change_owner_language(data['owner_language'])
+        elif 'assistant_name' in data:
+            assistant.change_assistant_name(data['assistant_name'])
+        elif 'assistant_language' in data:
+            assistant.change_assistant_language(data['assistant_language'])
+    except:
+        pass
+
     print(f"Received data: {data}")
-    if 'owner' in data:
-        owner.name = data['owner']
-        print(f"Owner updated to: {owner.name}")
     return jsonify({"status": "success", "data_received": data}), 200
 
 def run_flask():
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='localhost', port=5000)
 
 def main():
     flask_thread = threading.Thread(target=run_flask)

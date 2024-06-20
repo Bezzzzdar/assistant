@@ -35,6 +35,12 @@ class VoiceAssistant:
                 self.Engine.setProperty('voice', voices[0].id) 
                 self.Engine.setProperty('rate', 170)
     
+    def change_assistant_name(self, new_owner_name: str):
+        VoiceAssistant.name = new_owner_name
+
+    def change_assistant_language(self, new_owner_language: str):
+        VoiceAssistant.language = new_owner_language
+
     def assistant_say(self, text: str) -> None:
         self.Engine.say(text)
         self.Engine.runAndWait()

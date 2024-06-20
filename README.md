@@ -7,6 +7,8 @@
 * geocoder 
 * geopy
 * Flask
+* flask-cors
+
   
 # How to install:
 * `pip install dependence_name`

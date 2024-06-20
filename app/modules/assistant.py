@@ -3,9 +3,7 @@ import sys
 import random
 import googlesearch
 import webbrowser
-import geocoder
-import geopy
-import geopy.geocoders
+from modules.owner import Owner
                 
 class VoiceAssistant:
     def __init__(self, name: str, language: str) -> None:
@@ -37,6 +35,12 @@ class VoiceAssistant:
                 self.Engine.setProperty('voice', voices[0].id) 
                 self.Engine.setProperty('rate', 170)
     
+    def change_assistant_name(self, new_owner_name: str):
+        VoiceAssistant.name = new_owner_name
+
+    def change_assistant_language(self, new_owner_language: str):
+        VoiceAssistant.language = new_owner_language
+
     def assistant_say(self, text: str) -> None:
         self.Engine.say(text)
         self.Engine.runAndWait()
@@ -52,16 +56,6 @@ class VoiceAssistant:
     def quit(self, status):
         self.Engine.stop()
         sys.exit(status)
-
-class Owner:
-    def __init__(self, name: str, language: str) -> None:
-        Owner.name = name
-        Owner.language = language
-
-        self.geo = geocoder.ip('me')
-        self.geo = self.geo.latlng
-        geolocator = geopy.geocoders.Nominatim()
-        Owner.location = geolocator.reverse(str(self.geo[0]) + ', ' + str(self.geo[1]))
 
 class Commands:
     def __init__(self) -> None:

@@ -131,7 +131,6 @@ def get_weather_forecast(*args: tuple):
 
 
 def play_song(*args : tuple):
-    # TODO: use envs insted of files 
     if not (Owner.SpotifyClientID and Owner.SpotifyClientSecret and Owner.SpotifyRedirectUri):
         VoiceAssistant.assistant_say(VoiceAssistant, "Вы не можете воспользоваться данной функцией, так как у вас не установлены переменные среды SpotifyClientID, SpotifyClientSecret и SpotifyRedirectUri. Как это сделать вы можете посмотреть в README") 
     else:

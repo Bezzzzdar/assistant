@@ -3,6 +3,9 @@ import sys
 import random
 import googlesearch
 import webbrowser
+import os
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 from modules.owner import Owner
                 
 class VoiceAssistant:
@@ -128,4 +131,39 @@ def get_weather_forecast(*args: tuple):
 
 
 def play_song(*args : tuple):
-    print('play_song')
+    # TODO: use envs insted of files 
+    if not (Owner.SpotifyClientID and Owner.SpotifyClientSecret and Owner.SpotifyRedirectUri):
+        VoiceAssistant.assistant_say(VoiceAssistant, "Вы не можете воспользоваться данной функцией, так как у вас не установлены переменные среды SpotifyClientID, SpotifyClientSecret и SpotifyRedirectUri. Как это сделать вы можете посмотреть в README") 
+    else:
+        if not args[0]:
+            return -1
+        
+        # get ClientID && ClientSecret && RedirectUrl from owner
+        CLIENT_ID = Owner.SpotifyClientID
+        CLIENT_SECRET = Owner.SpotifyClientSecret
+        REDIRECT_URI = Owner.SpotifyRedirectUri
+        
+        SCOPE = 'user-modify-playback-state,user-read-playback-state,streaming'
+
+        # Authentication in Spotify
+        spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
+                                                            client_secret=CLIENT_SECRET,
+                                                            redirect_uri=REDIRECT_URI,
+                                                            scope=SCOPE))
+        
+        # find track by name
+        track_name = " ".join(args[0])
+        results = spotify.search(q=track_name, type='track', limit=1)
+        track = results['tracks']['items'][0]
+        track_uri = track['uri']
+
+        # get info about devices
+        devices = spotify.devices()
+        if not devices['devices']:
+            VoiceAssistant.assistant_say(VoiceAssistant, "У вас нет доступных устройств для воспроизведения. Пожалуйста установите приложение Spotify")
+            return -1
+        else:
+            # use first available device
+            DEVICE_ID = devices['devices'][0]['id']
+
+            spotify.start_playback(device_id=DEVICE_ID, uris=[track_uri])

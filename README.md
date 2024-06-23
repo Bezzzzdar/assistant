@@ -1,8 +1,7 @@
-# Dependencies:
+# Dependencies (Python):
 * PyAudio
 * pyttsx3
 * SpeechRecognition
-* PyQt6
 * googlesearch-python
 * geocoder 
 * geopy
@@ -12,6 +11,12 @@
 
 # How to install:
 * `pip install -r requirements.txt`
+
+# Dependencies (JS):
+* Electron
+
+# How to install:
+* `npm install electron --save-dev`
 
 # Setup the environment variables for using Spotify (Windows 10):
 ```PowerShell

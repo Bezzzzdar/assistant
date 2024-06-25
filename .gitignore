@@ -2,3 +2,7 @@ output
 __pycache__
 microphone-results.wav
 .cache
+build
+dist
+*.spec
+node_modules

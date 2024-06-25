@@ -4,12 +4,40 @@ from flask_cors import CORS
 from modules.assistant import VoiceAssistant
 from modules.owner import Owner
 from modules.record_and_recognize import record_and_recognize_audio, split_phrase
+import sys
+
+# command-line arguments:
+# -o [owner_name]
+# -a [assistant_name]
+# -l [language ru/en]
+# e.g. app -o Ivan -a Tayler -l ru
+
+# set defaults
+assistant = VoiceAssistant('Tyler', 'ru')
+owner = Owner("Ivan", 'ru')
+
+# processing command-line arguments
+argv = sys.argv
+for i in range(len(argv)):
+    if argv[i] == '-o':
+        owner_name = argv[i+1]
+    else:
+        owner_name = None
+    if argv[i] == '-a':
+        assistant_name = argv[i+1]
+    else:
+        assistant_name = None
+    if argv[i] == '-l':
+        language = argv[i+1]
+    else:
+        language = None
+
+if (owner_name and assistant_name and language): 
+    assistant = VoiceAssistant(assistant_name, language)
+    owner = Owner(owner_name, language)
 
 app = Flask(__name__)
 CORS(app)
-
-assistant = VoiceAssistant('Tyler', 'ru')
-owner = Owner("Ivan", 'ru')
 
 @app.route('/api/data', methods=['POST'])
 def receive_data():

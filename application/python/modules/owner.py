@@ -11,7 +11,7 @@ class Owner:
         # get user location by using ip
         self.geo = geocoder.ip('me')
         self.geo = self.geo.latlng
-        geolocator = geopy.geocoders.Nominatim()
+        geolocator = geopy.geocoders.Nominatim(user_agent='my-app')
         Owner.location = geolocator.reverse(str(self.geo[0]) + ', ' + str(self.geo[1]))
 
         # get environment variables

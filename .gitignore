@@ -1,8 +1,10 @@
 output
 __pycache__
-microphone-results.wav
+*.wav
 .cache
 build
 dist
 *.spec
 node_modules
+venv
+*.pt

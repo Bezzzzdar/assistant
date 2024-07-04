@@ -39,3 +39,6 @@ $variableValueToAdd = "value to add"
 [System.Environment]::SetEnvironmentVariable($variableNameToAdd, $variableValueToAdd, [System.EnvironmentVariableTarget]::User)
 ```
 ClientID, ClientSecret and RedirectUri you can get on [Spotify for Developers Dashboard](https://developer.spotify.com/dashboard)
+
+# Neuro:
+GitHub - [Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning)

@@ -7,6 +7,18 @@ import librosa
 import numpy as np
 import soundfile as sf
 
+# class NeuroVoice():
+#     def __init__(self, 
+#                  encoder_pretrained_model: str,
+#                  synthesizer_pretrained_model: str, 
+#                  vocoder_pretrained_model: str) -> None:
+#         # load pretrained models
+#         pass
+    
+#     def clone_voice():
+#         pass
+
+
 # Загрузка моделей
 encoder.load_model(Path("encoder/pretrained/encoder.pt"))
 synthesizer = Synthesizer(Path("synthesizer/pretrained/synthesizer.pt"))
@@ -31,6 +43,6 @@ def clone_voice(reference_wav_path, text, output_wav_path):
 
 if __name__ == "__main__":
     reference_wav_path = "voice.wav"
-    text = "Ну шо ты лысый плаки-плаки или нормалдаки?"
+    text = "Это синтезированный голос"
     output_wav_path = "output.wav"
     clone_voice(reference_wav_path, text, output_wav_path)

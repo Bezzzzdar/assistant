@@ -2,6 +2,8 @@ import geocoder
 import geopy
 import geopy.geocoders
 import os
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 
 class Owner:
     def __init__(self, name: str, language: str) -> None:
@@ -18,6 +20,14 @@ class Owner:
         Owner.SpotifyClientID = os.getenv('SpotifyClientID')
         Owner.SpotifyClientSecret = os.getenv('SpotifyClientSecret')
         Owner.SpotifyRedirectUri = os.getenv('SpotifyRedirectUri')
+        Owner.scope = 'user-modify-playback-state,user-read-playback-state,streaming'
+
+        if (Owner.SpotifyClientID and Owner.SpotifyClientSecret and Owner.SpotifyRedirectUri):
+            # Authentication in Spotify
+            Owner.spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=Owner.SpotifyClientID,
+                                                                client_secret=Owner.SpotifyClientSecret,
+                                                                redirect_uri=Owner.SpotifyRedirectUri,
+                                                                scope=Owner.scope))
 
     def change_owner_name(self, new_owner_name: str):
         Owner.name = new_owner_name

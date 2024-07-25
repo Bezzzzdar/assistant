@@ -5,6 +5,9 @@ import googlesearch
 import webbrowser
 import os
 import spotipy
+import time
+import psutil
+import concurrent.futures
 from spotipy.oauth2 import SpotifyOAuth
 from modules.owner import Owner
                 
@@ -13,7 +16,7 @@ class VoiceAssistant:
         self.name      = name
         self.language  = language
 
-        self.commands  = Commands()
+        self.commands  = CommandsDict()
         self.commands_dict = self.commands.dictionary()
         
         VoiceAssistant.Engine = pyttsx3.init()
@@ -51,7 +54,7 @@ class VoiceAssistant:
     def execute_command(self, command: str, *args: list) -> None:
         for key in self.commands_dict.keys():
             if command in key:
-                self.commands_dict[key](*args)
+                self.commands_dict[key].execute(*args)
                 break
             else:
                 continue
@@ -60,109 +63,184 @@ class VoiceAssistant:
         self.Engine.stop()
         sys.exit(status)
 
-class Commands:
+class CommandsDict:
     def __init__(self) -> None:
         pass
 
     def dictionary(self):
         self.Commands = {
-            ("привет ", "здравствуй ", "здарово ", "здарова ", "добрый день ", "доброе утро ", "добрый вечер "): play_greeting,
-            ("пока ", "покедова ", "досвидания ", "до скорого ", "до встречи ", "увидимся "): play_farewell_and_quit,
-            ("найди в гугл ", "найди в гугле ", "поищи в гугле "): google_search,
-            ("найди видео ", "покажи видео "): youtube_search,
-            ("прогноз погоды ", "какая погода "): get_weather_forecast,
-            ("включи песню ", "поставь песню "): play_song,
+            ("привет ", "здравствуй ", "здарово ", "здарова ", "добрый день ", "доброе утро ", "добрый вечер "): PlayGreetings(),
+            ("пока ", "покедова ", "досвидания ", "до скорого ", "до встречи ", "увидимся "): PlayFarewellAndQuit(),
+            ("найди в гугл ", "найди в гугле ", "поищи в гугле "): GoogleSearch(),
+            ("найди видео ", "покажи видео "): YouTubeSearch(),
+            ("прогноз погоды ", "какая погода "): GetWeatherForecast(),
+            ("включи песню ", "поставь песню "): PlaySong(),
+            ("выключи ", "стоп ", "поставь на паузу "): PauseSong(),
+            ("установи громкость на ", "поставь громкость на "): SetVolume(),
+            ("сделай тише ", "сделай потише ", "сделай ещё тише ", "сделай ещё потише ", "ещё тише "): QuieterVolume(),
+            ("сделай громче ", "сделай погромче ", "сделай ещё громче ", "сделай ещё погромче ", "ещё громче "): LouderVolume()
         }
         
         return self.Commands
 
-def play_greeting(*args: tuple):
-    greetings = [
+class Command:
+    def execute(self, *args: tuple, **kwargs):
+        raise NotImplementedError("This method should be overridden by subclasses")
+
+class PlayGreetings(Command):
+    def execute(self, *args: tuple, **kwargs):
+        greetings = [
         "Привет {}, чем могу помочь?".format(Owner.name), 
         "Здравствуйте {}! Чем обязан?".format(Owner.name),
         "Приветствую {}, чем могу быть полезен?".format(Owner.name)
-    ]
-    VoiceAssistant.assistant_say(VoiceAssistant, greetings[random.randint(0, len(greetings) - 1)])
+        ]
+        VoiceAssistant.assistant_say(VoiceAssistant, greetings[random.randint(0, len(greetings) - 1)])
 
-
-def play_farewell_and_quit(*args: tuple):
-    farewells = [
+class PlayFarewellAndQuit(Command):
+    def execute(self, *args: tuple, **kwargs):
+        farewells = [
         "До свидания {}".format(Owner.name),
         "Пока {}".format(Owner.name),
         "До скорого {}".format(Owner.name)
-    ]
-    VoiceAssistant.assistant_say(VoiceAssistant, farewells[random.randint(0, len(farewells) - 1)])
-    VoiceAssistant.quit(VoiceAssistant, 0)
+        ]
+        VoiceAssistant.assistant_say(VoiceAssistant, farewells[random.randint(0, len(farewells) - 1)])
+        VoiceAssistant.quit(VoiceAssistant, 0)
 
-def google_search(*args: tuple):
-    if not args[0]:
-        return -1
-    
-    search_term = " ".join(args[0])
-    url = "https://google.com/search?q=" + search_term
-    try:
-        webbrowser.get().open(url)
-        # search_results = []
-        # for result in googlesearch.search(search_term, num_results=1, lang=VoiceAssistant.language):
-        #     search_results.append(result)
-        #     webbrowser.get().open(result)
-        VoiceAssistant.assistant_say(VoiceAssistant, "Вот что мне удалось найти по запросу" + search_term)
-    except:
-        return -1
-    
-    return 0
-
-def youtube_search(*args: tuple):
-    if not args[0]:
-        return -1
-    
-    search_term = " ".join(args[0])
-    url = "https://www.youtube.com/results?search_query=" + search_term
-    try:
-        webbrowser.get().open(url)
-        VoiceAssistant.assistant_say(VoiceAssistant, "Вот что мне удалось найти на Youtube по запросу" + search_term)
-    except:
-        return -1
-    
-    return 0
-
-def get_weather_forecast(*args: tuple):
-    print("get_weather_forecast")
-
-
-def play_song(*args : tuple):
-    if not (Owner.SpotifyClientID and Owner.SpotifyClientSecret and Owner.SpotifyRedirectUri):
-        VoiceAssistant.assistant_say(VoiceAssistant, "Вы не можете воспользоваться данной функцией, так как у вас не установлены переменные среды SpotifyClientID, SpotifyClientSecret и SpotifyRedirectUri. Как это сделать вы можете посмотреть в README") 
-    else:
+class GoogleSearch(Command):
+    def execute(self, *args: tuple, **kwargs):
         if not args[0]:
-            return -1
+            return 
+    
+        search_term = " ".join(args[0])
+        url = "https://google.com/search?q=" + search_term
+        try:
+            webbrowser.get().open(url)
+            # search_results = []
+            # for result in googlesearch.search(search_term, num_results=1, lang=VoiceAssistant.language):
+            #     search_results.append(result)
+            #     webbrowser.get().open(result)
+            VoiceAssistant.assistant_say(VoiceAssistant, "Вот что мне удалось найти по запросу" + search_term)
+        except:
+            return 
         
-        # get ClientID && ClientSecret && RedirectUrl from owner
-        CLIENT_ID = Owner.SpotifyClientID
-        CLIENT_SECRET = Owner.SpotifyClientSecret
-        REDIRECT_URI = Owner.SpotifyRedirectUri
-        
-        SCOPE = 'user-modify-playback-state,user-read-playback-state,streaming'
+class YouTubeSearch(Command):
+    def execute(self, *args: tuple, **kwargs):
+        if not args[0]:
+            return 
+    
+        search_term = " ".join(args[0])
+        url = "https://www.youtube.com/results?search_query=" + search_term
+        try:
+            webbrowser.get().open(url)
+            VoiceAssistant.assistant_say(VoiceAssistant, "Вот что мне удалось найти на Youtube по запросу" + search_term)
+        except:
+            return 
 
-        # Authentication in Spotify
-        spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
-                                                            client_secret=CLIENT_SECRET,
-                                                            redirect_uri=REDIRECT_URI,
-                                                            scope=SCOPE))
-        
-        # find track by name
-        track_name = " ".join(args[0])
-        results = spotify.search(q=track_name, type='track', limit=1)
-        track = results['tracks']['items'][0]
-        track_uri = track['uri']
+class GetWeatherForecast(Command):
+    def execute(self, *args: tuple, **kwargs):
+        print("get_weather_forecast")
 
-        # get info about devices
-        devices = spotify.devices()
-        if not devices['devices']:
+
+def _get_info_about_devices():
+    global DEVICE_ID
+    global DEFAULT_VOLUME
+    global current_volume
+
+    # get info about devices
+    find_flag = 0 
+    spotify_proc = "Spotify.exe"
+    for proc in psutil.process_iter():
+        if proc.name == spotify_proc:
+            devices = Owner.spotify.devices()
+            find_flag = 1
+            break
+
+    if find_flag == 0:
+        possible_directories = [
+            os.path.join(os.environ.get("ProgramFiles", ""), "Spotify"),
+            os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Spotify"),
+            os.path.expanduser("~\\AppData\\Roaming\\Spotify"),
+            os.path.expanduser("~\\AppData\\Local\\Microsoft\\WindowsApps")
+        ]
+
+        spotify_executable_path = None
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {}
+            for directory in possible_directories:
+                spotify_executable = os.path.join(directory, "Spotify.exe")
+                futures[executor.submit(os.path.exists, spotify_executable)] = spotify_executable
+            
+            for future in concurrent.futures.as_completed(futures):
+                spotify_executable = futures[future]
+                if future.result():
+                    spotify_executable_path = spotify_executable
+                    break
+
+        if spotify_executable_path and os.path.exists(spotify_executable_path):
+            os.startfile(spotify_executable_path)
+            time.sleep(5)
+            devices = Owner.spotify.devices()
+        else:
             VoiceAssistant.assistant_say(VoiceAssistant, "У вас нет доступных устройств для воспроизведения. Пожалуйста установите приложение Spotify")
             return -1
-        else:
-            # use first available device
-            DEVICE_ID = devices['devices'][0]['id']
+    
+    # use first available device 
+    DEVICE_ID = devices['devices'][0]['id']
+    DEFAULT_VOLUME = 50
+    current_volume = DEFAULT_VOLUME
+    return 0
 
-            spotify.start_playback(device_id=DEVICE_ID, uris=[track_uri])
+class PlaySong(Command):
+    def execute(self, *args: tuple, **kwargs):
+        if not (Owner.SpotifyClientID and Owner.SpotifyClientSecret and Owner.SpotifyRedirectUri):
+            VoiceAssistant.assistant_say(VoiceAssistant, "Вы не можете воспользоваться данной функцией, так как у вас не установлены переменные среды SpotifyClientID, SpotifyClientSecret и SpotifyRedirectUri. Как это сделать вы можете посмотреть в README") 
+            return -1
+        else:
+            if not args[0]:
+                return -1
+        
+            if _get_info_about_devices() == 0:
+                # find track by name
+                track_name = " ".join(args[0])
+                results = Owner.spotify.search(q=track_name, type='track', limit=1)
+                track = results['tracks']['items'][0]
+                track_uri = track['uri']
+
+                Owner.spotify.volume(volume_percent=current_volume, device_id=DEVICE_ID)
+                Owner.spotify.start_playback(device_id=DEVICE_ID, uris=[track_uri])
+
+class PauseSong(Command):
+    def execute(self, *args: tuple, **kwargs):
+        try:
+            Owner.spotify.pause_playback(device_id=DEVICE_ID)
+        except:
+            pass
+
+class SetVolume(Command):
+    def execute(self, *args: tuple, **kwargs):
+        if not args[0]:
+            return -1
+        volume = args[0][0][:-1]
+        try:
+            Owner.spotify.volume(volume_percent=int(volume), device_id=DEVICE_ID)
+        except:
+            pass           
+
+class QuieterVolume(Command):
+    def execute(self, *args: tuple, **kwargs):
+        try:
+            global current_volume
+            current_volume = max(current_volume - 10, 0)
+            Owner.spotify.volume(volume_percent=current_volume, device_id=DEVICE_ID)
+        except:
+            pass
+
+class LouderVolume(Command):
+    def execute(self, *args: tuple, **kwargs):
+        try:
+            global current_volume
+            current_volume = min(current_volume + 10, 100)
+            Owner.spotify.volume(volume_percent=current_volume, device_id=DEVICE_ID)
+        except:
+            pass 

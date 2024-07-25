@@ -17,6 +17,11 @@
 
 # How to install:
 * `npm install electron --save-dev`
+  
+# Virtual environment (execute from the project root): 
+* `python -m venv venv`
+* `.\venv\Scripts\Activate.ps1`
+* `pip install -r modules/requirements.txt`
 
 # Setup the environment variables for using Spotify (Windows 10):
 ```PowerShell

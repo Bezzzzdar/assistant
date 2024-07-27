@@ -1,11 +1,18 @@
+# Standart modules
+import os
+
+# Geopisition
 import geocoder
 import geopy
 import geopy.geocoders
-import os
+
+# Spotify
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 class Owner:
+    """Class representing a user, we call it Owner"""
+
     def __init__(self, name: str, language: str) -> None:
         Owner.name = name
         Owner.language = language
@@ -25,13 +32,14 @@ class Owner:
         if (Owner.SpotifyClientID and Owner.SpotifyClientSecret and Owner.SpotifyRedirectUri):
             # Authentication in Spotify
             Owner.spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=Owner.SpotifyClientID,
-                                                                client_secret=Owner.SpotifyClientSecret,
-                                                                redirect_uri=Owner.SpotifyRedirectUri,
-                                                                scope=Owner.scope))
+                                                                      client_secret=Owner.SpotifyClientSecret,
+                                                                      redirect_uri=Owner.SpotifyRedirectUri,
+                                                                      scope=Owner.scope))
 
     def change_owner_name(self, new_owner_name: str):
+        """Function for changing Owner name"""
         Owner.name = new_owner_name
 
     def change_owner_language(self, new_owner_language: str):
+        """Function for changing Owner language"""
         Owner.language = new_owner_language
-    

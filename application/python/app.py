@@ -18,28 +18,22 @@ from modules.record_and_recognize import record_and_recognize_audio, split_phras
 # e.g. app -o Ivan -a Tayler -l ru
 
 # set defaults
-assistant = VoiceAssistant('Tyler', 'ru')
-owner = Owner("Ivan", 'ru')
+owner_name = "Ivan"
+assistant_name = "Tayler"
+language = "ru"
 
 # processing command-line arguments
 argv = sys.argv
-for i in enumerate(argv):
-    if argv[i] == '-o':
-        owner_name = argv[i+1]
-    else:
-        owner_name = None
-    if argv[i] == '-a':
-        assistant_name = argv[i+1]
-    else:
-        assistant_name = None
-    if argv[i] == '-l':
-        language = argv[i+1]
-    else:
-        language = None
+for i, arg in enumerate(argv):
+    if arg == '-o' and i + 1 < len(argv):
+        owner_name = argv[i + 1]
+    if arg == '-a' and i + 1 < len(argv):
+        assistant_name = argv[i + 1]
+    if arg == '-l' and i + 1 < len(argv):
+        language = argv[i + 1]
 
-if (owner_name and assistant_name and language): 
-    assistant = VoiceAssistant(assistant_name, language)
-    owner = Owner(owner_name, language)
+assistant = VoiceAssistant(assistant_name, language)
+owner = Owner(owner_name, language)
 
 app = Flask(__name__)
 CORS(app)
@@ -80,8 +74,9 @@ def main():
         voice_input = record_and_recognize_audio()
         commands_list, command_options_list = split_phrase(voice_input)
 
-        for i in enumerate(commands_list):
-            assistant.recognize_and_execute_command(commands_list[i], command_options_list[i])
+        for i, command in enumerate(commands_list):
+            assistant.recognize_and_execute_command(command, command_options_list[i])
+
 
 if __name__ == "__main__":
     main()

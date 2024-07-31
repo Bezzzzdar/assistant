@@ -46,10 +46,10 @@ def split_phrase(voice: str):
         command_options_list = []
         command = ''
 
-        for i in enumerate(voice):
-            command = command + voice[i] + ' '
+        for i, word in enumerate(voice):
+            command = command + word + ' '
             command_options = [str(input_part) for input_part in voice[i+1:len(voice)]]
-            commands_list.append(command)
+            commands_list.append(command.strip())
             command_options_list.append(command_options)
 
         return commands_list, command_options_list

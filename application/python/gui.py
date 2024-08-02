@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout,
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QPoint, QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap, QImage
 
-
 # Логотип в формате base64
 base64_logo = """
     iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAADKUlEQVR4nO2ZS2
@@ -157,6 +156,8 @@ class MainWindow(QMainWindow):
                 background-color: #FFFFFF;
             }
         """)
+        self.setMinimumSize(900, 600)  # Установка минимального размера
+
         # Set the center widget
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -199,10 +200,17 @@ class MainWindow(QMainWindow):
         self.side_menu_visible_position = QPoint(0, 0)
         self.side_menu_visible = False
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Resize the side menu to match the height of the main window
+        if self.side_menu_visible:
+            self.side_menu.setFixedSize(self.side_menu.width(), self.height())
+
     def toggle_side_menu(self):
         if self.side_menu_visible:
             self.side_menu.slide_out(self.side_menu_hidden_position)
         else:
+            self.side_menu.setFixedSize(self.side_menu.width(), self.height())  # Match height of main window
             self.side_menu.slide_in(self.side_menu_hidden_position, self.side_menu_visible_position)
         self.side_menu_visible = not self.side_menu_visible
 
@@ -221,8 +229,7 @@ class MainWindow(QMainWindow):
         super().keyPressEvent(event)
 
 def _get_icon_from_base64(base64_string: str, width: int, height: int):
-    """Function for decode image form base64 code"""
-
+    """Function for decode image from base64 code"""
     image_data = base64.b64decode(base64_string)
     image = QImage()
     image.loadFromData(image_data)

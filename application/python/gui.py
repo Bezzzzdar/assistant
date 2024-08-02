@@ -24,17 +24,8 @@ base64_logo = """
 """
 
 base64_side_menu_icon = """
-    iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAACe0lEQVR4nO2au2
-    4TURCGP6gCjZFoQrYOIMUVIXmBpLBkGsQ7kIZrBM4DhKfgAUibAspQASmCME1ER6RQpYw3SHFlNNKsNFrtrhe857IJ
-    v3Sk1cw543ObOfOPDP9xufEAGAMTbb+BHi3EjllE1t7RMqwCJzr5u9omKhNd9LgP7JsTOAauaDs28i/aNxpsAO+BAb
-    BlfOIQeA7Mm77y/UJ10mesYwZqQ2wFwWLOmaWdA0+AqxXjRPdU+9qxY7XpHbs6AdnNt8ABsPYX49eArzr2g9oSm17R
-    NTspjlwWfveAMyDV735J3zvG3hIe0QF+6g9/B27k9G8KQm/WtnN9b+rJTNSm2PaKBDjSCTzMnUTmL6+AW9peG7+wJ/
-    NIZUdqMwiGOonbRvZRZbKIPAaqk2uWIXtjvhEQZzqJOSNLVWZDb4Z51Y2M7JrKZFwwpAULGalMrlMeiepOjex6gSyK
-    q7WnMvGJPLZivFpJibP3jbOLTyxosy9/NM4+LfxutyX8dms8iH29QmnMD2JRiiK7uk59rPtKUaYxvLKk8VmNpFEy47
-    GvpLGI4YmsKo3PXu4fwMuCNH5TddmibRr/OCaGtwx8LiFWv4z8E3CPFjC8lYqNEF3jcMnw6lzNVjC8nsnFJvrdc1Eq
-    2g3I8Bo7rZAMr9FSUScAw3NWKkocMzyvpaKhI4bnvVSUakdhaXWI0UIFwxuFDCSpg4UECSRDBwzPeyBJHDI8b6Wijg
-    eG56VU1PXA8FwFEu8Mz9tCFh0zPK+log1HDC94qWi5AYYXValoZQaGF12paGcGzhBVqahXwfCmoTWlojqIvlT0r4im
-    VNQUvJeKXOJC/E9l1kDChcEf5WBV0nnE3k0AAAAASUVORK5CYII=
+    iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAALUlEQVR4nGNgGA
+    UjChxmYGD4TyV8mNYWHKJ/+IwCYsBoKhoFlIPRVDQKBikAACEWdLZVlt8CAAAAAElFTkSuQmCC
 """
 
 class SideMenu(QDialog):
@@ -171,13 +162,13 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         # Icon in base64 code
-        side_menu_icon, side_menu_icon_size = _get_icon_from_base64(base64_side_menu_icon, 40, 40) 
+        side_menu_icon, side_menu_icon_size = _get_icon_from_base64(base64_side_menu_icon, 35, 35) 
 
         # Create a side menu button and set an icon
         self.side_menu_button = QPushButton("", self)
         self.side_menu_button.setIcon(side_menu_icon)
         self.side_menu_button.setIconSize(side_menu_icon_size)
-        self.side_menu_button.setGeometry(0, 0, 40, 40)  
+        self.side_menu_button.setGeometry(0, 0, 35, 35)  
 
         # Set the styles for the side menu button
         self.side_menu_button.setStyleSheet("""

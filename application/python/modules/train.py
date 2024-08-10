@@ -13,7 +13,7 @@ torch.manual_seed(42)
 
 TRAIN_BATCH_SIZE = 5
 VALID_BATCH_SIZE = 2
-df_size = 1000
+df_size = 100
 tresh_hold = 0.5
 
 command_lines = {'PlayGreetings': ('привет ','здравствуй ','здарово ','здарова ','добрый день ','доброе утро ','добрый вечер '),

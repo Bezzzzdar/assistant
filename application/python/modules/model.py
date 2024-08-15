@@ -1,9 +1,11 @@
 import sklearn
 import pickle
 import torch
+from assistant import *
+
 
 class Model():
-    def __init__(self):
+    def __init__(self, test):
         self.tokenizer, self.model = pickle.load(open('log_model.pkl', 'rb'))
         
         self.commands = {0: GoogleSearch(),
@@ -28,8 +30,12 @@ class Model():
            8: 'QuieterVolume',
            9: 'LouderVolume'}
         
+        self.test = test
+        
     def forward(self, input):
         x = self.tokenizer.transform([input]).toarray()
         x = self.model.predict(x)[0]
         print(self.dummy_col[x])
+        if self.test:
+            return
         return self.commnads[x](input)

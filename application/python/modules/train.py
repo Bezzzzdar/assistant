@@ -1,5 +1,4 @@
 import pandas as pd
-import torch
 import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -9,7 +8,6 @@ import pickle
 import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
-torch.manual_seed(42)
 
 TRAIN_BATCH_SIZE = 5
 VALID_BATCH_SIZE = 2

@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QStackedWidget)
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QPoint, QSize, Qt, QRect
-from PyQt5.QtGui import QIcon, QPixmap, QImage, QPainter, QBrush, QColor
+from PyQt5.QtGui import QIcon, QPixmap, QImage, QPainter, QBrush, QColor, QResizeEvent
 
 from modules.icons import Base64Icons, Base64ConstIcons, Base64UserIcons
 
@@ -34,8 +34,9 @@ class GlobalParametrs:
 global_parametrs = GlobalParametrs()
 
 class SideMenu(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, overlay, parent=None):
         super().__init__(parent)
+        self.overlay = overlay
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setFixedSize(200, 600)
         self.setStyleSheet("background-color: #3F00FF; color: white;")
@@ -145,6 +146,7 @@ class SideMenu(QDialog):
         self.setLayout(layout)
 
     def slide_in(self, start_position, end_position):
+        self.setFixedSize(self.width(), self.parent().height())
         self.move(start_position)
         self.show()
         self.animation = QPropertyAnimation(self, b"pos")
@@ -152,12 +154,12 @@ class SideMenu(QDialog):
         self.animation.setStartValue(start_position)
         self.animation.setEndValue(end_position)
         self.animation.setEasingCurve(QEasingCurve.InOutQuad)
-        self.animation.finished.connect(self.parent().side_menu_button.hide)
+        # self.parent().side_menu_button.hide()
         self.animation.start()
         
 
     def slide_out(self, end_position):
-        self.parent().side_menu_button.show()
+        # self.parent().side_menu_button.show()
         self.animation = QPropertyAnimation(self, b"pos")
         self.animation.setDuration(300)
         self.animation.setStartValue(self.pos())
@@ -171,7 +173,7 @@ class SideMenu(QDialog):
         if self.parent() and isinstance(self.parent(), MainWindow):
             global_parametrs.modal_account_menu_visible = True
             global_parametrs.side_menu_visible = False
-            self.modal_account_menu = ModalAccountMenu(overlay=self.parent().overlay, parent=self.parent())
+            self.modal_account_menu = ModalAccountMenu(overlay=self.overlay, parent=self.parent())
             self.parent().layout.addWidget(self.modal_account_menu)
             self.modal_account_menu.show()
             self.slide_out(QPoint(-self.width(), 0))
@@ -209,7 +211,6 @@ class ModalAccountMenu(QDialog):
         self.setStyleSheet("""
             QDialog {
                 background-color: #F0FFFF;
-                border: 1px solid #3F00FF;
                 border-radius: 10px;
             }
         """)
@@ -289,7 +290,7 @@ class ModalAccountMenu(QDialog):
             QCheckBox {
                 font-size: 14px;
                 color: #3F00FF;
-                background-color: none;
+                background-color: #F0FFFF;
                 border: none;
                 padding: 5px;
             }
@@ -298,7 +299,7 @@ class ModalAccountMenu(QDialog):
                 height: 16px;
                 border-radius: 8px; 
                 border: 2px solid #3F00FF;
-                background-color: white;
+                background-color: #F0FFFF;
             }
             QCheckBox::indicator:checked {
                 background-color: #3F00FF;
@@ -311,7 +312,7 @@ class ModalAccountMenu(QDialog):
             QCheckBox {
                 font-size: 14px;
                 color: #3F00FF;
-                background-color: none;
+                background-color: #F0FFFF;
                 border: none;
                 padding: 5px;
             }
@@ -320,7 +321,7 @@ class ModalAccountMenu(QDialog):
                 height: 16px;
                 border-radius: 8px;
                 border: 2px solid #3F00FF;
-                background-color: white;
+                background-color: #F0FFFF;
             }
             QCheckBox::indicator:checked {
                 background-color: #3F00FF;
@@ -352,7 +353,7 @@ class ModalAccountMenu(QDialog):
             QCheckBox {
                 font-size: 14px;
                 color: #3F00FF;
-                background-color: none;
+                background-color: #F0FFFF;
                 border: none;
                 padding: 5px;
             }
@@ -361,7 +362,7 @@ class ModalAccountMenu(QDialog):
                 height: 16px;
                 border-radius: 8px; 
                 border: 2px solid #3F00FF;
-                background-color: white;
+                background-color: #F0FFFF;
             }
             QCheckBox::indicator:checked {
                 background-color: #3F00FF;
@@ -373,20 +374,20 @@ class ModalAccountMenu(QDialog):
             QCheckBox {
                 font-size: 14px;
                 color: #3F00FF;
-                background-color: none;
+                background-color: #F0FFFF;
                 border: none;
                 padding: 5px;
             }
             QCheckBox::indicator {
                 width: 16px;
                 height: 16px;
-                border-radius: 8px; /* Делает индикатор круглым */
-                border: 2px solid #3F00FF; /* Цвет и толщина границы */
-                background-color: white; /* Фон индикатора */
+                border-radius: 8px;
+                border: 2px solid #3F00FF;
+                background-color: #F0FFFF;
             }
             QCheckBox::indicator:checked {
-                background-color: #3F00FF; /* Цвет точки */
-                border: 2px solid #3F00FF; /* Граница остается той же */
+                background-color: #3F00FF;
+                border: 2px solid #3F00FF;
             }
         """)
         self.interface_english_language_checkbox.setChecked(True)
@@ -490,11 +491,16 @@ class ModalAccountMenu(QDialog):
         if self.main_window:
             self.resize_proportionally()
             self.opacity_animation.start()
+            global_parametrs.modal_account_menu_visible = True
+            self.main_window.side_menu_button.lower()
 
     def closeModal(self):
         self.opacity_animation.setDirection(QPropertyAnimation.Backward)
         self.opacity_animation.finished.connect(self.close)
         self.opacity_animation.start()
+        self.overlay.opacity_animation_hide.start()
+        self.overlay.hide()
+        self.main_window.side_menu_button.stackUnder(self.main_window.side_menu)
         global_parametrs.modal_account_menu_visible = False
 
 
@@ -883,20 +889,33 @@ class ModalAboutAppMenu(QDialog):
 
 class Overlay(QWidget):
     def __init__(self, parent=None):
-        super(Overlay, self).__init__(parent)
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.setAttribute(Qt.WA_NoSystemBackground)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.main_window = parent
+        super().__init__(parent)
+        self.setStyleSheet("background-color: rgba(0, 0, 0, 150);")  # Полупрозрачный черный цвет
 
         # Настройка эффекта прозрачности
         self.opacity_effect = QGraphicsOpacityEffect()
         self.setGraphicsEffect(self.opacity_effect)
-        self.opacity_animation = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.opacity_animation.setDuration(300)
-        self.opacity_animation.setStartValue(0)
-        self.opacity_animation.setEndValue(1)
-        self.opacity_animation.setEasingCurve(QEasingCurve.InOutQuad)
+        self.opacity_animation_show = QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.opacity_animation_show.setDuration(300)
+        self.opacity_animation_show.setStartValue(0)
+        self.opacity_animation_show.setEndValue(1)
+        self.opacity_animation_show.setEasingCurve(QEasingCurve.InOutQuad)
+
+        self.opacity_animation_hide = QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.opacity_animation_hide.setDuration(300)
+        self.opacity_animation_hide.setStartValue(1)
+        self.opacity_animation_hide.setEndValue(0)
+        self.opacity_animation_hide.setEasingCurve(QEasingCurve.InOutQuad)
+
+        self.setGeometry(parent.rect())
+        self.hide()
+
+    def show(self):
+        self.setGeometry(self.parent().rect())
+        super().show()
+
+    def resizeEvent(self, event):
+        self.setGeometry(self.parent().rect())
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -920,19 +939,20 @@ class MainWindow(QMainWindow):
 
         # Создаем оверлей
         self.overlay = Overlay(self)
-        self.overlay.hide()
 
         # Set the center widget
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
 
         # Icon in base64 code
-        side_menu_icon, side_menu_icon_size = _get_icon_from_base64(const_icons.base64_side_menu_icon, 35, 35) 
+        self.side_menu_icon, self.side_menu_icon_size = _get_icon_from_base64(const_icons.base64_side_menu_icon, 35, 35)
+
+        self.side_menu_icon_hover,  self.side_menu_icon_hover_size = _get_icon_from_base64(const_icons.base64_side_menu_hover_icon, 35, 35)
 
         # Create a side menu button and set an icon
         self.side_menu_button = QPushButton("", self)
-        self.side_menu_button.setIcon(side_menu_icon)
-        self.side_menu_button.setIconSize(side_menu_icon_size)
+        self.side_menu_button.setIcon(self.side_menu_icon)
+        self.side_menu_button.setIconSize(self.side_menu_icon_size)
         self.side_menu_button.setGeometry(0, 0, 35, 35)  
 
         # Set the styles for the side menu button
@@ -940,25 +960,16 @@ class MainWindow(QMainWindow):
             QPushButton {
                 background-color: #F0FFFF; 
                 border: none;
-                padding: 10px;
-                border-radius: 5px;
-                text-align: center;
-            }
-                    
-            QPushButton:hover {
-                background-color: #3F00FF;
-            }
-
-            QPushButton:focus {
-                outline: none;
             }
         """)
 
         # Connect the button press signal
         self.side_menu_button.clicked.connect(self.toggle_side_menu)
+        self.side_menu_button.enterEvent = self.on_enter_side_menu_button
+        self.side_menu_button.leaveEvent = self.on_leave_side_menu_button
 
         # Initializing the side menu
-        self.side_menu = SideMenu(self)
+        self.side_menu = SideMenu(overlay=self.overlay, parent=self)
         self.side_menu.setGeometry(-self.side_menu.width(), 0, self.side_menu.width(), self.side_menu.height())
         self.side_menu_hidden_position = QPoint(-self.side_menu.width(), 0)
         self.side_menu_visible_position = QPoint(0, 0)
@@ -966,6 +977,15 @@ class MainWindow(QMainWindow):
 
         self.layout = QHBoxLayout(self.central_widget)
 
+    def on_enter_side_menu_button(self, event):
+        # Меняем иконку при наведении курсора
+        self.side_menu_button.setIcon(self.side_menu_icon_hover)
+        event.accept()
+
+    def on_leave_side_menu_button(self, event):
+        # Возвращаем исходную иконку, когда курсор уходит
+        self.side_menu_button.setIcon(self.side_menu_icon)
+        event.accept()
         
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -979,32 +999,36 @@ class MainWindow(QMainWindow):
 
 
     def toggle_side_menu(self):
-        if global_parametrs.side_menu_visible:
-            self.side_menu.slide_out(self.side_menu_hidden_position)
-        else:
-            self.side_menu.setFixedSize(self.side_menu.width(), self.height())  # Match height of main window
+        if not global_parametrs.side_menu_visible:
+            self.overlay.opacity_animation_show.start()
+            self.overlay.show()
             self.side_menu.slide_in(self.side_menu_hidden_position, self.side_menu_visible_position)
-        global_parametrs.side_menu_visible = not global_parametrs.side_menu_visible
+            global_parametrs.side_menu_visible = True
+        else:
+            self.side_menu.slide_out(self.side_menu_hidden_position)
+            global_parametrs.side_menu_visible = False
+            self.overlay.opacity_animation_hide.start()
+            self.overlay.hide()
 
     def mousePressEvent(self, event):
         # Check if the click was outside of the side menu
         if global_parametrs.side_menu_visible and not self.side_menu.geometry().contains(self.mapFromGlobal(event.globalPos())):
-            self.side_menu.slide_out(self.side_menu_hidden_position)
-            global_parametrs.side_menu_visible = False
+            self.toggle_side_menu()
         if global_parametrs.modal_account_menu_visible and not self.side_menu.modal_account_menu.geometry().contains(self.mapFromGlobal(event.globalPos())):
             self.side_menu.modal_account_menu.closeModal()
             global_parametrs.modal_account_menu_visible = False
         super().mousePressEvent(event)
 
-    def keyPressEvent(self, event):
-        # Hide menu if Esc key is pressed
-        if event.key() == Qt.Key_Escape and global_parametrs.side_menu_visible:
-            self.side_menu.slide_out(self.side_menu_hidden_position)
-            global_parametrs.side_menu_visible = False
-        if event.key() == Qt.Key_Escape and global_parametrs.modal_account_menu_visible:
-            self.side_menu.modal_account_menu.closeModal()
-            global_parametrs.modal_account_menu_visible = False
-        super().keyPressEvent(event)
+    # def keyPressEvent(self, event):
+    #     # Hide menu if Esc key is pressed
+    #     if event.key() == Qt.Key_Escape and global_parametrs.side_menu_visible:
+    #         self.toggle_side_menu()
+    #     if event.key() == Qt.Key_Escape and global_parametrs.modal_account_menu_visible:
+    #         self.side_menu.modal_account_menu.closeModal()
+    #         self.overlay.opacity_animation_hide.start()
+    #         self.overlay.hide()
+    #         global_parametrs.modal_account_menu_visible = False
+    #     super().keyPressEvent(event)
 
 def _get_icon_from_base64(base64_icon: str, width: int, height: int):
     """Function for decode image from base64 code"""

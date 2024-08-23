@@ -14,9 +14,12 @@ from PyQt5.QtWidgets import (
     QSizePolicy, 
     QSpacerItem, 
     QTextEdit,
-    QLayout)
+    QLayout,
+    QGraphicsOpacityEffect,
+    QCheckBox,
+    QStackedWidget)
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QPoint, QSize, Qt, QRect
-from PyQt5.QtGui import QIcon, QPixmap, QImage
+from PyQt5.QtGui import QIcon, QPixmap, QImage, QPainter, QBrush, QColor
 
 from modules.icons import Base64Icons, Base64ConstIcons, Base64UserIcons
 
@@ -126,12 +129,12 @@ class SideMenu(QDialog):
         bottom_layout.setContentsMargins(0, 0, 0, 0)
 
         user_label_icon = QLabel(self)
-        profile_icon, profile_icon_size = _get_icon_from_base64(user_icons.base64_profile_icon, 35, 35)
+        profile_icon, profile_icon_size = _get_icon_from_base64(user_icons.base64_default_profile_icon, 30, 30)
         user_label_icon.setPixmap(profile_icon.pixmap(profile_icon_size))
         user_label_icon.setFixedSize(profile_icon_size)
         user_label_text = QLabel(self)
         user_label_text.setText("Ivan Rastegaev")
-        user_label_text.setStyleSheet("font-size: 14px;")
+        user_label_text.setStyleSheet("font-size: 16px;")
         user_label_text.setAlignment(Qt.AlignCenter)
 
         bottom_layout.setSpacing(0)
@@ -149,9 +152,12 @@ class SideMenu(QDialog):
         self.animation.setStartValue(start_position)
         self.animation.setEndValue(end_position)
         self.animation.setEasingCurve(QEasingCurve.InOutQuad)
+        self.animation.finished.connect(self.parent().side_menu_button.hide)
         self.animation.start()
+        
 
     def slide_out(self, end_position):
+        self.parent().side_menu_button.show()
         self.animation = QPropertyAnimation(self, b"pos")
         self.animation.setDuration(300)
         self.animation.setStartValue(self.pos())
@@ -159,103 +165,250 @@ class SideMenu(QDialog):
         self.animation.setEasingCurve(QEasingCurve.InOutQuad)
         self.animation.finished.connect(self.close)
         self.animation.start()
+        
     
     def display_account_menu(self):
         if self.parent() and isinstance(self.parent(), MainWindow):
-            self.modal_account_menu = ModalAccountMenu(self.parent())
+            global_parametrs.modal_account_menu_visible = True
+            global_parametrs.side_menu_visible = False
+            self.modal_account_menu = ModalAccountMenu(overlay=self.parent().overlay, parent=self.parent())
+            self.parent().layout.addWidget(self.modal_account_menu)
             self.modal_account_menu.show()
             self.slide_out(QPoint(-self.width(), 0))
-            global_parametrs.side_menu_visible = False
-            global_parametrs.modal_account_menu_visible = True
-            # modal_account_menu.exec_()
-
+            
     def display_settings_menu(self):
         if self.parent() and isinstance(self.parent(), MainWindow):
-            modal_settings_menu = ModalSettingsMenu(self.parent())
+            self.modal_settings_menu = ModalSettingsMenu(self.parent())      
             self.slide_out(QPoint(-self.width(), 0))
             global_parametrs.side_menu_visible = False
-            modal_settings_menu.exec_()
+            self.modal_settings_menu.exec_()
 
     def display_authors_menu(self):
         if self.parent() and isinstance(self.parent(), MainWindow):
-            modal_authors_menu = ModalAuthorsMenu(self.parent())
+            self.modal_authors_menu = ModalAuthorsMenu(self.parent())
             self.slide_out(QPoint(-self.width(), 0))
             global_parametrs.side_menu_visible = False
-            modal_authors_menu.exec_()
+            self.modal_authors_menu.exec_()
 
     def display_about_app_menu(self):
         if self.parent() and isinstance(self.parent(), MainWindow):
-            modal_about_app_menu = ModalAboutAppMenu(self.parent())
+            self.modal_about_app_menu = ModalAboutAppMenu(self.parent())
             self.slide_out(QPoint(-self.width(), 0))
             global_parametrs.side_menu_visible = False
-            modal_about_app_menu.exec_()
+            self.modal_about_app_menu.exec_()
 
-class ModalAccountMenu(QWidget):
-    def __init__(self, parent):
+class ModalAccountMenu(QDialog):
+    def __init__(self, overlay, parent):
         super().__init__(parent)
         self.main_window = parent
+        self.overlay = overlay
         self.initial_width_ratio = 0.44
         self.initial_height_ratio = 0.92
-        self.setWindowFlags(Qt.Tool | self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        self.setFixedSize(350, 550)
+        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setFixedSize(400, 600)
         self.setStyleSheet("""
-            QWidget {
-                background-color: #FFFFFF;
-                border: 1px solid #D3D3D3;
+            QDialog {
+                background-color: #F0FFFF;
+                border: 1px solid #3F00FF;
                 border-radius: 10px;
             }
         """)
+
+        self.raise_()
 
         layout = QVBoxLayout()
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
         # Заголовок
-        header = QLabel("Account", self)
-        header.setStyleSheet("""
+        self.header = QLabel("Account", self)
+        self.header.setStyleSheet("""
             QLabel {
-                background-color: #3F00FF;
-                color: white;
-                padding: 10px;
-                border-top-left-radius: 10px;
-                border-top-right-radius: 10px;
-                font-weight: bold;
+                font-size: 16px;
+                color: #3F00FF;
+                font-weight: bold;                           
             }
         """)
-        header.setFixedHeight(30)
-        header.setAlignment(Qt.AlignCenter)
-        layout.addWidget(header)
+        self.header.setFixedHeight(40)
+        self.header.setAlignment(Qt.AlignCenter | Qt.AlignTop)
+        layout.addWidget(self.header)
+
+        self.personal_data_selection = QLabel("Personal data", self)
+        self.personal_data_selection.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #3F00FF;                             
+            }
+        """)
+
+        layout.addWidget(self.personal_data_selection)
 
         # Поле для имени пользователя
-        self.username_input = QLineEdit(self)
-        self.username_input.setPlaceholderText("Username")
-        self.username_input.setStyleSheet("""
+        self.first_name_input = QLineEdit(self)
+        self.first_name_input.setPlaceholderText("First name")
+        self.first_name_input.setStyleSheet("""
             QLineEdit {
+                font-size: 14px;
+                color: #3F00FF;
                 background-color: #F0F8FF;
-                border: 1px solid #D3D3D3;
+                border: 1px solid #3F00FF;
                 border-radius: 5px;
                 padding: 10px;
             }
         """)
-        layout.addWidget(self.username_input)
+        layout.addWidget(self.first_name_input)
 
-        # Поле для email
-        self.email_input = QLineEdit(self)
-        self.email_input.setPlaceholderText("Email")
-        self.email_input.setStyleSheet("""
+        # Поле для фамилии пользователя
+        self.last_name_input = QLineEdit(self)
+        self.last_name_input.setPlaceholderText("Last name")
+        self.last_name_input.setStyleSheet("""
             QLineEdit {
+                font-size: 14px;
+                color: #3F00FF;
                 background-color: #F0F8FF;
-                border: 1px solid #D3D3D3;
+                border: 1px solid #3F00FF;
                 border-radius: 5px;
                 padding: 10px;
             }
         """)
-        layout.addWidget(self.email_input)
+        layout.addWidget(self.last_name_input)
 
+        self.owner_language_selection = QLabel("Your language", self)
+        self.owner_language_selection.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #3F00FF;                             
+            }
+        """)
+        layout.addWidget(self.owner_language_selection)
+
+        self.owner_language_layout = QHBoxLayout()
+
+        self.owner_russian_language_checkbox = QCheckBox("Russian")
+        self.owner_russian_language_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-size: 14px;
+                color: #3F00FF;
+                background-color: none;
+                border: none;
+                padding: 5px;
+            }
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 8px; 
+                border: 2px solid #3F00FF;
+                background-color: white;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #3F00FF;
+                border: 2px solid #3F00FF; 
+            }
+        """)
+        self.owner_russian_language_checkbox.setChecked(True)
+        self.owner_english_language_checkbox = QCheckBox("English")
+        self.owner_english_language_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-size: 14px;
+                color: #3F00FF;
+                background-color: none;
+                border: none;
+                padding: 5px;
+            }
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 8px;
+                border: 2px solid #3F00FF;
+                background-color: white;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #3F00FF;
+                border: 2px solid #3F00FF; 
+            }
+        """)
+
+        self.owner_russian_language_checkbox.stateChanged.connect(self.on_owner_russian_language_checkbox_changed)
+        self.owner_english_language_checkbox.stateChanged.connect(self.on_owner_english_language_checkbox_changed)
+
+        self.owner_language_layout.addWidget(self.owner_russian_language_checkbox)
+        self.owner_language_layout.addWidget(self.owner_english_language_checkbox)
+
+        layout.addLayout(self.owner_language_layout)
+
+        self.interface_language_selection = QLabel("Interface language", self)
+        self.interface_language_selection.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #3F00FF;                             
+            }
+        """)
+        layout.addWidget(self.interface_language_selection)
+
+        self.interface_language_layout = QHBoxLayout()
+
+        self.interface_russian_language_checkbox = QCheckBox("Russian")
+        self.interface_russian_language_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-size: 14px;
+                color: #3F00FF;
+                background-color: none;
+                border: none;
+                padding: 5px;
+            }
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 8px; 
+                border: 2px solid #3F00FF;
+                background-color: white;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #3F00FF;
+                border: 2px solid #3F00FF; 
+            }
+        """)
+        self.interface_english_language_checkbox = QCheckBox("English")
+        self.interface_english_language_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-size: 14px;
+                color: #3F00FF;
+                background-color: none;
+                border: none;
+                padding: 5px;
+            }
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 8px; /* Делает индикатор круглым */
+                border: 2px solid #3F00FF; /* Цвет и толщина границы */
+                background-color: white; /* Фон индикатора */
+            }
+            QCheckBox::indicator:checked {
+                background-color: #3F00FF; /* Цвет точки */
+                border: 2px solid #3F00FF; /* Граница остается той же */
+            }
+        """)
+        self.interface_english_language_checkbox.setChecked(True)
+
+        self.interface_russian_language_checkbox.stateChanged.connect(self.on_interface_russian_language_checkbox_changed)
+        self.interface_english_language_checkbox.stateChanged.connect(self.on_interface_english_language_checkbox_changed)
+
+        self.interface_language_layout.addWidget(self.interface_russian_language_checkbox)
+        self.interface_language_layout.addWidget(self.interface_english_language_checkbox)
+
+        layout.addLayout(self.interface_language_layout)
+
+
+        separator = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        layout.addItem(separator)
+
+        self.bottom_layout = QHBoxLayout()
         # Кнопка для сохранения настроек
-        save_button = QPushButton("Save", self)
-        save_button.setStyleSheet("""
+        self.save_button = QPushButton("Save", self)
+        self.save_button.setStyleSheet("""
             QPushButton {
+                font-size: 14px;
                 background-color: #3F00FF;
                 color: white;
                 border: none;
@@ -266,11 +419,12 @@ class ModalAccountMenu(QWidget):
                 background-color: #000080;
             }
         """)
-        layout.addWidget(save_button)
+        self.bottom_layout.addWidget(self.save_button)
 
-        close_button = QPushButton("Close", self)
-        close_button.setStyleSheet("""
+        self.close_button = QPushButton("Close", self)
+        self.close_button.setStyleSheet("""
             QPushButton {
+                font-size: 14px;
                 background-color: #3F00FF;
                 color: white;
                 border: none;
@@ -281,22 +435,50 @@ class ModalAccountMenu(QWidget):
                 background-color: #000080;
             }
         """)
-        close_button.clicked.connect(self.closeModal)
-        layout.addWidget(close_button)
+        self.close_button.clicked.connect(self.closeModal)
+        self.bottom_layout.addWidget(self.close_button)
 
+        layout.addLayout(self.bottom_layout)
         self.setLayout(layout)
+
+        # Настройка эффекта прозрачности
+        self.opacity_effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.opacity_effect)
+        self.opacity_animation = QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.opacity_animation.setDuration(300)
+        self.opacity_animation.setStartValue(0)
+        self.opacity_animation.setEndValue(1)
+        self.opacity_animation.setEasingCurve(QEasingCurve.InOutQuad)
+
+    def on_owner_russian_language_checkbox_changed(self, state):
+        if state == Qt.Checked:
+            self.owner_english_language_checkbox.setChecked(False)
+            # Owner.language = 'ru'
+
+    def on_owner_english_language_checkbox_changed(self, state):
+        if state == Qt.Checked:
+            self.owner_russian_language_checkbox.setChecked(False)
+            # Owner.language = 'en'
+
+    def on_interface_russian_language_checkbox_changed(self, state):
+        if state == Qt.Checked:
+            self.interface_english_language_checkbox.setChecked(False)
+            # Inerface.language = 'ru'
+
+    def on_interface_english_language_checkbox_changed(self, state):
+        if state == Qt.Checked:
+            self.interface_russian_language_checkbox.setChecked(False)
+            # Interface.language = 'en'
 
     def resize_proportionally(self):
         # Пропорции виджета относительно размеров окна
-        if self.main_window is None:
-            return
-        
-        main_window_width = self.main_window.width()
-        main_window_height =  self.main_window.height()
-        modal_menu_width = int(main_window_width * self.initial_width_ratio)
-        modal_menu_height = int(main_window_height * self.initial_height_ratio)
+        if self.main_window:
+            main_window_width = self.main_window.width()
+            main_window_height =  self.main_window.height()
+            modal_menu_width = int(main_window_width * self.initial_width_ratio)
+            modal_menu_height = int(main_window_height * self.initial_height_ratio)
 
-        self.setFixedSize(modal_menu_width, modal_menu_height)
+            self.setFixedSize(modal_menu_width, modal_menu_height)
         
 
     def resizeEvent(self, event):
@@ -306,32 +488,13 @@ class ModalAccountMenu(QWidget):
     def showEvent(self, event):
         super().showEvent(event)
         if self.main_window:
-            # Получаем положение и размеры главного окна
-            main_window_rect = self.main_window.rect()
-            main_window_pos = self.main_window.pos()
-
-            # Определяем центр главного окна
-            center = main_window_pos + main_window_rect.center() + QPoint(0, 31)
-            self.move(center - self.rect().center())
-
             self.resize_proportionally()
-
-            # Добавляем анимацию
-            self.animation = QPropertyAnimation(self, b"windowOpacity")
-            self.animation.setDuration(300)
-            self.animation.setStartValue(0)
-            self.animation.setEndValue(1)
-            self.animation.setEasingCurve(QEasingCurve.InOutQuad)  
-            self.animation.start()
+            self.opacity_animation.start()
 
     def closeModal(self):
-        self.animation = QPropertyAnimation(self, b"windowOpacity")
-        self.animation.setDuration(300)
-        self.animation.setStartValue(1)
-        self.animation.setEndValue(0)
-        self.animation.setEasingCurve(QEasingCurve.InOutQuad)
-        self.animation.finished.connect(self.close)
-        self.animation.start()
+        self.opacity_animation.setDirection(QPropertyAnimation.Backward)
+        self.opacity_animation.finished.connect(self.close)
+        self.opacity_animation.start()
         global_parametrs.modal_account_menu_visible = False
 
 
@@ -718,10 +881,34 @@ class ModalAboutAppMenu(QDialog):
         if self.main_window:
             self.setFixedSize(int(self.main_window.width() / 2.5), int(self.main_window.height() / 1.5))
 
+class Overlay(QWidget):
+    def __init__(self, parent=None):
+        super(Overlay, self).__init__(parent)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.main_window = parent
+
+        # Настройка эффекта прозрачности
+        self.opacity_effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.opacity_effect)
+        self.opacity_animation = QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.opacity_animation.setDuration(300)
+        self.opacity_animation.setStartValue(0)
+        self.opacity_animation.setEndValue(1)
+        self.opacity_animation.setEasingCurve(QEasingCurve.InOutQuad)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        brush = QBrush(QColor(0, 0, 0, 150))  # Полупрозрачный черный цвет
+        painter.setBrush(brush)
+        painter.setPen(Qt.NoPen)
+        painter.drawRect(self.rect())
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
         self.setWindowTitle("Assistant")
         self.setGeometry(500, 300, 900, 600)
         self.setStyleSheet("""
@@ -730,6 +917,10 @@ class MainWindow(QMainWindow):
             }
         """)
         self.setMinimumSize(900, 600)
+
+        # Создаем оверлей
+        self.overlay = Overlay(self)
+        self.overlay.hide()
 
         # Set the center widget
         self.central_widget = QWidget(self)
@@ -773,6 +964,9 @@ class MainWindow(QMainWindow):
         self.side_menu_visible_position = QPoint(0, 0)
         global_parametrs.side_menu_visible = False
 
+        self.layout = QHBoxLayout(self.central_widget)
+
+        
     def resizeEvent(self, event):
         super().resizeEvent(event)
         # Resize the side menu to match the height of the main window
@@ -780,6 +974,8 @@ class MainWindow(QMainWindow):
             self.side_menu.setFixedSize(self.side_menu.width(), self.height())
         if global_parametrs.modal_account_menu_visible:
             self.side_menu.modal_account_menu.resize_proportionally()
+        if self.overlay:
+            self.overlay.resize(self.size())
 
 
     def toggle_side_menu(self):
@@ -795,6 +991,9 @@ class MainWindow(QMainWindow):
         if global_parametrs.side_menu_visible and not self.side_menu.geometry().contains(self.mapFromGlobal(event.globalPos())):
             self.side_menu.slide_out(self.side_menu_hidden_position)
             global_parametrs.side_menu_visible = False
+        if global_parametrs.modal_account_menu_visible and not self.side_menu.modal_account_menu.geometry().contains(self.mapFromGlobal(event.globalPos())):
+            self.side_menu.modal_account_menu.closeModal()
+            global_parametrs.modal_account_menu_visible = False
         super().mousePressEvent(event)
 
     def keyPressEvent(self, event):
@@ -802,6 +1001,9 @@ class MainWindow(QMainWindow):
         if event.key() == Qt.Key_Escape and global_parametrs.side_menu_visible:
             self.side_menu.slide_out(self.side_menu_hidden_position)
             global_parametrs.side_menu_visible = False
+        if event.key() == Qt.Key_Escape and global_parametrs.modal_account_menu_visible:
+            self.side_menu.modal_account_menu.closeModal()
+            global_parametrs.modal_account_menu_visible = False
         super().keyPressEvent(event)
 
 def _get_icon_from_base64(base64_icon: str, width: int, height: int):

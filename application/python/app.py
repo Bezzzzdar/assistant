@@ -12,7 +12,7 @@ from modules.owner import Owner
 from modules.record_and_recognize import record_and_recognize_audio, split_phrase
 
 #model
-from model import Model
+from modules.model import Model
 
 model = Model(test=True)
 

@@ -35,7 +35,7 @@ class Model():
     def forward(self, input):
         x = self.tokenizer.transform([input]).toarray()
         x = self.model.predict(x)[0]
-        print(self.dummy_col[x])
+        print(self.dummy_com[x])
         if self.test:
             return
         return self.commnads[x](input)

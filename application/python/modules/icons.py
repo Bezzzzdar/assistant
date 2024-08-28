@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
-@dataclass
-class Base64Icons:
-    pass
+import base64
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtGui import QIcon, QPixmap, QImage
 
-@dataclass(slots=True)
-class Base64ConstIcons(Base64Icons):
-    base64_side_menu_logo: str = """
+@dataclass(slots=True, frozen=True)
+class Base64ConstIcons():
+    base64_side_bar_logo: str = """
         iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAADKUlEQVR4nO2ZS2
         yMURTHbx9RVCORTNrYNJFGQ3SBeCwIaUJj01VFV8TGxsqeeG5QCZGmNpYikUpEUlYIk1BFlWpaFoJGiVcoiwbJTy7n
         cjPm8X3jnslXmX/yJTN3zvf/n3Of554xpoxoAK4Dd8x0BwIz3UE5kIThfxqRNHDDJAHALuAikCqhZgo4D+wMSXpBZs
@@ -23,12 +23,12 @@ class Base64ConstIcons(Base64Icons):
         AASUVORK5CYII=
     """
 
-    base64_side_menu_icon: str = """
+    base64_side_bar_icon: str = """
         iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAZ0lEQVR4nO3WwQ
         mAQAwF0SlPt/+zC4t9RGxAZRH84DzIPTkEBiRJek8DOlDh04H16pARsGQ9nP0Xh6zAFrBk3cy54zL7P5IkSR9pZjxZ
         9TsCyrbMeEmSpGzNjCerfkdAnpcZL0kScw7zFAKxsVXx1wAAAABJRU5ErkJggg==
     """
-    base64_side_menu_hover_icon: str = """
+    base64_side_bar_hover_icon: str = """
         iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAcElEQVR4nO3YQQ
         qAMAxE0TlZsrXef21BvMeIB5AKFlvkP8g+swgMkQAA6CTkNeSasmeekGvI5TZIyvvoJfN5mOP/QUIuKW+jl8z2XDsu
         r28JAADgQ0GN91ztN6nxpsYDAAA0UONFjTffePGNBwComxMXbJKaX3uXHwAAAABJRU5ErkJggg==
@@ -113,8 +113,8 @@ class Base64ConstIcons(Base64Icons):
     """
 
 @dataclass
-class Base64UserIcons(Base64Icons):
-    base64_default_profile_icon: str = """
+class Base64UserIcons():
+    base64_profile_icon: str = """
         iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAACXBIWXMAAAsTAAALEwEAmpwYAAAIqklEQVR4nO1dS4
         wjRxluCFHEBYQQN4QCCoiXEHAAAUGgICEeASRAPMRDEOXAASULiBOwEEEgcCISEiJHBBdAEJFFcJnR7jyq3e1ud7vd
         tmc8Hs94xuMqu6qrZ6NdDpvNFvqNZ5U445223fXw2J/0SdZ42vXX/3V1Vf31V7VlLbHEEkssscQC4dlu93XHhLwp7R
@@ -152,4 +152,18 @@ class Base64UserIcons(Base64Icons):
         gg==
     """
 
-    base64_profile_icon: str = """"""
+base64_const_icons = Base64ConstIcons()
+base64_user_icons = Base64UserIcons()
+
+
+def _get_icon_from_base64(base64_icon: str, width: int, height: int):
+    """Function for decode image from base64 code"""
+    image_data = base64.b64decode(base64_icon)
+    image = QImage()
+    image.loadFromData(image_data)
+    pixmap = QPixmap.fromImage(image)
+    icon_size = QSize(width, height)
+    scaled_pixmap = pixmap.scaled(icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    icon = QIcon(scaled_pixmap)
+
+    return icon, icon_size

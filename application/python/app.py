@@ -11,6 +11,11 @@ from modules.assistant import VoiceAssistant
 from modules.owner import Owner
 from modules.record_and_recognize import record_and_recognize_audio, split_phrase
 
+#model
+from modules.model import Model
+
+model = Model(test=True)
+
 # command-line arguments:
 # -o [owner_name]
 # -a [assistant_name]
@@ -72,11 +77,13 @@ def main():
 
     while True:
         voice_input = record_and_recognize_audio()
-        commands_list, command_options_list = split_phrase(voice_input)
-
-        for i, command in enumerate(commands_list):
-            assistant.recognize_and_execute_command(command, command_options_list[i])
-
+        model.forward(voice_input)
+        
+        # commands_list, command_options_list = split_phrase(voice_input)
+        # 
+        # for i, command in enumerate(commands_list):
+        #     assistant.recognize_and_execute_command(command, command_options_list[i])
+        
 
 if __name__ == "__main__":
     main()
